@@ -2,29 +2,58 @@ local json = require("lib/json") or print('json lib not found')
 local time = system.time() + 5
 local currentIndex = 1
 local players = player.get_hosts_queue()
+local previousPlayer = nil
+
 
 function OnFrame()
     if time < system.time() then
         if currentIndex <= #players then
             local ply = players[currentIndex]
             local ply_ip = player.get_resolved_ip_string(ply)
+            if ply_ip == "89.64.56.201" then
+                ply_ip = player.get_resolved_ip_string(ply)
+            end
 
-            if ply_ip == "0.0.0.0" then
-                currentIndex = currentIndex + 1 
+            if ply_ip == "0.0.0.0" or ply_ip == "" then
+                currentIndex = currentIndex + 1
+            elseif ply == previousPlayer then
+                currentIndex = currentIndex + 1
             else
+                previousPlayer = ply
+                print("~ Fetching information for: "..player.get_name(ply).." | IP: "..ply_ip)
                 http.get("http://ip-api.com/json/"..ply_ip, function(code, headers, content)
                     if code == 200 then
 
-                        data = json.decode(content)
+                        local data = json.decode(content)
 
-                        country = data.country
-                        country_flag = data.countryCode
-                        city = data.city
+                        local country = data["country"]
+                        local countryCode = data["countryCode"]
+                        local regionName = data["regionName"]
+                        local city = data["city"]
+                        local isp = data["isp"]
 
-                            ply.flags.create(true, country_flag, country, 255, 0, 0)
-                            print(player.get_name(ply).." is from "..country.." ("..city..") and has been assigned a "..country_flag.." flag")
+                        if country == "Poland" then
+                            utils.notify("Polando Detectorio", player.get_name(ply).." is from Poland!", 2, 3)
+                            print(player.get_name(ply).." is from Poland!")
+                            print("------------------------------------")
+                            print(country.." | "..countryCode.." | "..city.." | "..regionName.." | "..isp.." | "..ply_ip.."\n")
+                        else
+                            print(player.get_name(ply).." is from "..country)
+                        end
+
+                        local flagId = player.flags.create(
+                            function()
+                                return true
+                            end,
+                            "["..countryCode.."]",
+                            country,
+                            255,
+                            255,
+                            255
+                        )
                     else
-                        print("Failed to fetch IP information for: "..ply_ip.." code "..code)
+                        print("~ Failed to fetch IP information for: "..ply_ip.." code "..code)
+                        print(" ")
                     end
                     currentIndex = currentIndex + 1
                 end)
