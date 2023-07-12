@@ -10,7 +10,7 @@ function OnFrame()
         if currentIndex <= #players then
             local ply = players[currentIndex]
             local ply_ip = player.get_resolved_ip_string(ply)
-            if ply_ip == "89.64.56.201" then
+            if ply_ip == "" then
                 ply_ip = player.get_resolved_ip_string(ply)
             end
 
