@@ -3,14 +3,14 @@ local time = system.time() + 5
 local currentIndex = 1
 local players = player.get_hosts_queue()
 local previousPlayer = nil
-
+local checkPlayer = nil
 
 function OnFrame()
     if time < system.time() then
         if currentIndex <= #players then
             local ply = players[currentIndex]
             local ply_ip = player.get_resolved_ip_string(ply)
-            if ply_ip == "" then
+            if ply_ip == player.get_resolved_ip_string(1) then
                 ply_ip = player.get_resolved_ip_string(ply)
             end
 
@@ -34,16 +34,22 @@ function OnFrame()
 
                         if country == "Poland" then
                             utils.notify("Polando Detectorio", player.get_name(ply).." is from Poland!", 2, 3)
-                            print(player.get_name(ply).." is from Poland!")
-                            print("------------------------------------")
-                            print(country.." | "..countryCode.." | "..city.." | "..regionName.." | "..isp.." | "..ply_ip.."\n")
+                                print(player.get_name(ply).." is from Poland!")
+                                print("------------------------------------")
+                                print(country.." | "..countryCode.." | "..city.." | "..regionName.." | "..isp.." | "..ply_ip.."\n")
+                        elseif country == "Russia" then
+                            utils.notify("Anti-KGB", player.get_name(ply).." is from Russia! Kicking...", 2, 3)
+                                print(player.get_name(ply).." is from Russia!")
+                                print("------------------------------------")
+                                print(country.." | "..countryCode.." | "..city.." | "..regionName.." | "..isp.." | "..ply_ip.."\n")
+                                print("Kicking attempt...")
+                            player.kick_brute(ply)
                         else
                             print(player.get_name(ply).." is from "..country)
                         end
-
                         local flagId = player.flags.create(
-                            function()
-                                return true
+                            function(checkPlayer)
+                                return checkPlayer == ply
                             end,
                             "["..countryCode.."]",
                             country,
